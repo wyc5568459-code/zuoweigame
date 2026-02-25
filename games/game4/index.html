@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>佐为自走棋</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="top-panel card">
+      <h1>佐为自走棋</h1>
+      <div class="stats">
+        <div>回合 <strong id="roundLabel">1</strong></div>
+        <div>血量 <strong id="hpLabel">100</strong></div>
+        <div>金币 <strong id="goldLabel">10</strong></div>
+        <div>等级 <strong id="levelLabel">1</strong></div>
+        <div>经验 <strong id="expLabel">0/4</strong></div>
+        <div>人口 <strong id="popLabel">0/1</strong></div>
+      </div>
+      <div class="actions">
+        <button id="btnStartBattle" class="primary">开始战斗</button>
+        <button id="btnBuyExp">购买经验 (4金)</button>
+        <button id="btnRefresh">刷新商店 (2金)</button>
+        <button id="btnLock">锁定商店: 否</button>
+        <button id="btnRestart" class="danger">重新开局</button>
+      </div>
+      <div id="phaseLabel" class="phase">准备阶段</div>
+    </header>
+
+    <main class="layout">
+      <section class="board-wrap card">
+        <h2>战场 4x4</h2>
+        <div id="battleBoard" class="grid board-grid"></div>
+        <p class="hint">操作：先点击棋子，再点击目标格。可在棋盘和备战区之间移动。</p>
+      </section>
+
+      <aside class="side-panel card">
+        <h2>羁绊面板</h2>
+        <div id="synergyPanel" class="synergy-list"></div>
+        <h2>棋子详情</h2>
+        <div id="unitDetail" class="unit-detail">点击任意棋子查看详情</div>
+        <h2>战报</h2>
+        <div id="logPanel" class="log-panel"></div>
+      </aside>
+    </main>
+
+    <section class="bench-wrap card">
+      <h2>备战区（8格）</h2>
+      <div id="bench" class="grid bench-grid"></div>
+    </section>
+
+    <section class="shop-wrap card">
+      <div class="shop-header">
+        <h2>商店</h2>
+        <span>点击购买棋子</span>
+      </div>
+      <div id="shop" class="shop-grid"></div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
