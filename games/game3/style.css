@@ -21,6 +21,27 @@ html, body {
   margin: 0;
   font-size: 1.1rem;
 }
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.quick-nav {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.quick-nav a {
+  background: #243550;
+  border: 1px solid #3b577c;
+  color: #e5f2ff;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+}
 .hint {
   font-size: 0.8rem;
   color: #cbd5e1;

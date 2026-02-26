@@ -23,13 +23,13 @@ const T = {
 };
 
 const MONSTERS = {
-  slime: { name: '绿史莱姆', hp: 40, atk: 15, def: 4, gold: 4, color: '#22c55e' },
-  bat: { name: '小蝙蝠', hp: 70, atk: 22, def: 8, gold: 8, color: '#a78bfa' },
-  guard: { name: '骷髅卫兵', hp: 120, atk: 32, def: 15, gold: 14, color: '#d1d5db' },
-  knight: { name: '铁甲骑士', hp: 220, atk: 55, def: 30, gold: 28, color: '#60a5fa' },
-  mage: { name: '黑袍法师', hp: 300, atk: 78, def: 42, gold: 40, color: '#f97316' },
-  demon: { name: '高阶恶魔', hp: 450, atk: 110, def: 68, gold: 55, color: '#ef4444' },
-  king: { name: '魔王', hp: 1500, atk: 220, def: 140, gold: 0, color: '#b91c1c' },
+  slime: { name: '绿史莱姆', hp: 40, atk: 15, def: 4, gold: 4, color: '#22c55e', icon: '🟢' },
+  bat: { name: '小蝙蝠', hp: 70, atk: 22, def: 8, gold: 8, color: '#a78bfa', icon: '🦇' },
+  guard: { name: '骷髅卫兵', hp: 120, atk: 32, def: 15, gold: 14, color: '#d1d5db', icon: '💀' },
+  knight: { name: '铁甲骑士', hp: 220, atk: 55, def: 30, gold: 28, color: '#60a5fa', icon: '🛡️' },
+  mage: { name: '黑袍法师', hp: 300, atk: 78, def: 42, gold: 40, color: '#f97316', icon: '🔮' },
+  demon: { name: '高阶恶魔', hp: 450, atk: 110, def: 68, gold: 55, color: '#ef4444', icon: '😈' },
+  king: { name: '魔王', hp: 1500, atk: 220, def: 140, gold: 0, color: '#b91c1c', icon: '👹' },
 };
 
 const EVENT_TEXT = {
@@ -59,6 +59,23 @@ const game = {
   messages: [],
 };
 
+function rng(seed) {
+  let t = seed + 0x6D2B79F5;
+  return () => {
+    t += 0x6D2B79F5;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffle(arr, random) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
 function damageForecast(hero, m) {
   const perHero = Math.max(1, hero.atk - m.def);
   const rounds = Math.ceil(m.hp / perHero);
@@ -66,47 +83,99 @@ function damageForecast(hero, m) {
   return perMonster * Math.max(0, rounds - 1);
 }
 
-function buildFloor(n) {
-  const map = Array.from({ length: SIZE }, () => Array(SIZE).fill(T.FLOOR));
-  const monsters = [];
-  for (let y = 0; y < SIZE; y++) {
-    for (let x = 0; x < SIZE; x++) {
-      if (x === 0 || y === 0 || x === SIZE - 1 || y === SIZE - 1 || (x % 4 === 0 && y % 4 === 0)) map[y][x] = T.WALL;
+function carveMaze(map, random) {
+  const stack = [[1, 1]];
+  map[1][1] = T.FLOOR;
+  while (stack.length) {
+    const [x, y] = stack[stack.length - 1];
+    const dirs = [[2, 0], [-2, 0], [0, 2], [0, -2]];
+    shuffle(dirs, random);
+    let moved = false;
+    for (const [dx, dy] of dirs) {
+      const nx = x + dx, ny = y + dy;
+      if (nx <= 0 || ny <= 0 || nx >= SIZE - 1 || ny >= SIZE - 1) continue;
+      if (map[ny][nx] !== T.WALL) continue;
+      map[y + dy / 2][x + dx / 2] = T.FLOOR;
+      map[ny][nx] = T.FLOOR;
+      stack.push([nx, ny]);
+      moved = true;
+      break;
+    }
+    if (!moved) stack.pop();
+  }
+}
+
+function freeCells(map) {
+  const cells = [];
+  for (let y = 1; y < SIZE - 1; y++) {
+    for (let x = 1; x < SIZE - 1; x++) {
+      if (map[y][x] === T.FLOOR) cells.push({ x, y });
     }
   }
+  return cells;
+}
+
+function takeCell(cells, random, avoid = []) {
+  const tries = cells.length * 2;
+  for (let i = 0; i < tries; i++) {
+    const idx = Math.floor(random() * cells.length);
+    const c = cells[idx];
+    if (!c) continue;
+    if (avoid.some(a => Math.abs(a.x - c.x) + Math.abs(a.y - c.y) <= 1)) continue;
+    cells.splice(idx, 1);
+    return c;
+  }
+  return cells.pop();
+}
+
+function buildFloor(n) {
+  const random = rng(2024 + n * 97);
+  const map = Array.from({ length: SIZE }, () => Array(SIZE).fill(T.WALL));
+  const monsters = [];
+
+  carveMaze(map, random);
 
   const stairUp = { x: 1, y: 1 };
   const stairDown = { x: SIZE - 2, y: SIZE - 2 };
-  if (n > 1) map[stairUp.y][stairUp.x] = T.STAIR_UP;
-  if (n < 50) map[stairDown.y][stairDown.x] = T.STAIR_DOWN;
+  map[stairUp.y][stairUp.x] = n > 1 ? T.STAIR_UP : T.FLOOR;
+  map[stairDown.y][stairDown.x] = n < 50 ? T.STAIR_DOWN : T.FLOOR;
 
-  const points = [
-    [2, 2, T.KEY_Y], [3, 2, T.GEM_R], [2, 3, T.POTION],
-    [6, 2, T.GEM_B], [9, 3, T.GOLD], [10, 2, T.KEY_B],
-    [2, 6, T.DOOR_Y], [3, 6, T.GOLD], [5, 5, T.TRAP],
-    [7, 7, T.DOOR_B], [8, 8, T.KEY_R], [10, 9, T.POTION],
-  ];
-  points.forEach(([x, y, t]) => {
-    if (map[y][x] === T.FLOOR) map[y][x] = t;
-  });
+  const cells = freeCells(map).filter(c => !(c.x === stairUp.x && c.y === stairUp.y) && !(c.x === stairDown.x && c.y === stairDown.y));
 
-  if (n % 5 === 0) map[6][10] = T.SHOP;
-  if (EVENT_TEXT[n]) map[10][1] = T.NPC;
-  if (n % 10 === 0) map[4][9] = T.DOOR_R;
+  const placeTile = (type, count, avoid = []) => {
+    for (let i = 0; i < count; i++) {
+      const c = takeCell(cells, random, avoid);
+      if (!c) return;
+      map[c.y][c.x] = type;
+    }
+  };
+
+  placeTile(T.KEY_Y, 2, [stairUp, stairDown]);
+  placeTile(T.KEY_B, n > 8 ? 1 : 0, [stairUp, stairDown]);
+  placeTile(T.KEY_R, n > 18 ? 1 : 0, [stairUp, stairDown]);
+  placeTile(T.DOOR_Y, 2, [stairUp, stairDown]);
+  placeTile(T.DOOR_B, n > 10 ? 1 : 0, [stairUp, stairDown]);
+  placeTile(T.DOOR_R, n > 20 ? 1 : 0, [stairUp, stairDown]);
+  placeTile(T.GEM_R, 2);
+  placeTile(T.GEM_B, 2);
+  placeTile(T.POTION, 2);
+  placeTile(T.TRAP, Math.min(2 + Math.floor(n / 12), 4));
+  placeTile(T.GOLD, 3);
+
+  if (n % 5 === 0) placeTile(T.SHOP, 1);
+  if (EVENT_TEXT[n]) placeTile(T.NPC, 1);
+  if (n === 49) placeTile(T.NPC, 1);
 
   const roster = n < 8 ? ['slime', 'bat'] : n < 16 ? ['bat', 'guard'] : n < 28 ? ['guard', 'knight'] : n < 40 ? ['knight', 'mage'] : ['mage', 'demon'];
-  for (let i = 0; i < 8; i++) {
-    const x = 2 + ((i * 3 + n) % 9);
-    const y = 2 + ((i * 5 + n) % 9);
-    if (map[y][x] === T.FLOOR) monsters.push({ x, y, type: roster[i % roster.length] });
+  const monsterCount = Math.min(6 + Math.floor(n / 8), 12);
+  for (let i = 0; i < monsterCount; i++) {
+    const c = takeCell(cells, random, [stairUp, stairDown]);
+    if (!c) break;
+    monsters.push({ x: c.x, y: c.y, type: roster[i % roster.length] });
   }
 
-  if (n === 49) {
-    map[6][6] = T.NPC;
-  }
   if (n === 50) {
     monsters.push({ x: 6, y: 6, type: 'king', boss: true });
-    map[stairDown.y][stairDown.x] = T.FLOOR;
   }
 
   return { map, monsters, visited: false };
@@ -119,32 +188,44 @@ function ensureFloors() {
 
 function floorData() { return game.floors[game.floor - 1]; }
 
+function drawIcon(px, py, icon, size = 18) {
+  ctx.font = `${size}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(icon, px + TILE / 2, py + TILE / 2 + 1);
+}
+
 function drawTile(x, y, tile) {
   const px = x * TILE, py = y * TILE;
   ctx.fillStyle = '#1f2937';
   ctx.fillRect(px, py, TILE, TILE);
-  if (tile === T.WALL) { ctx.fillStyle = '#475569'; ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4); }
-  if (tile === T.DOOR_Y) { ctx.fillStyle = '#eab308'; ctx.fillRect(px + 4, py + 4, TILE - 8, TILE - 8); }
-  if (tile === T.DOOR_B) { ctx.fillStyle = '#3b82f6'; ctx.fillRect(px + 4, py + 4, TILE - 8, TILE - 8); }
-  if (tile === T.DOOR_R) { ctx.fillStyle = '#ef4444'; ctx.fillRect(px + 4, py + 4, TILE - 8, TILE - 8); }
-  if (tile === T.KEY_Y || tile === T.KEY_B || tile === T.KEY_R) {
-    ctx.fillStyle = tile === T.KEY_Y ? '#facc15' : tile === T.KEY_B ? '#60a5fa' : '#f87171';
-    ctx.beginPath(); ctx.arc(px + 12, py + 16, 6, 0, Math.PI * 2); ctx.fill();
-    ctx.fillRect(px + 16, py + 14, 10, 4);
+
+  if (tile === T.FLOOR || tile === T.STAIR_UP || tile === T.STAIR_DOWN) {
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+    ctx.strokeRect(px + 0.5, py + 0.5, TILE - 1, TILE - 1);
   }
-  if (tile === T.GEM_R || tile === T.GEM_B) {
-    ctx.fillStyle = tile === T.GEM_R ? '#fb7185' : '#93c5fd';
-    ctx.beginPath(); ctx.moveTo(px + 16, py + 4); ctx.lineTo(px + 28, py + 16); ctx.lineTo(px + 16, py + 28); ctx.lineTo(px + 4, py + 16); ctx.closePath(); ctx.fill();
+
+  if (tile === T.WALL) {
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(px + 1, py + 1, TILE - 2, TILE - 2);
+    ctx.fillStyle = '#64748b';
+    for (let i = 0; i < 3; i++) ctx.fillRect(px + 4 + i * 8, py + 6, 4, TILE - 12);
   }
-  if (tile === T.POTION) { ctx.fillStyle = '#ef4444'; ctx.fillRect(px + 10, py + 8, 12, 16); }
-  if (tile === T.STAIR_UP || tile === T.STAIR_DOWN) {
-    ctx.fillStyle = '#94a3b8';
-    for (let i = 0; i < 4; i++) ctx.fillRect(px + 4 + i * 6, py + (tile === T.STAIR_UP ? 22 - i * 4 : 8 + i * 4), 6, 4);
-  }
-  if (tile === T.SHOP) { ctx.fillStyle = '#22d3ee'; ctx.fillRect(px + 6, py + 6, 20, 20); }
-  if (tile === T.NPC) { ctx.fillStyle = '#fbbf24'; ctx.fillRect(px + 8, py + 8, 16, 16); }
-  if (tile === T.TRAP) { ctx.fillStyle = '#f97316'; ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4); }
-  if (tile === T.GOLD) { ctx.fillStyle = '#fde047'; ctx.fillRect(px + 8, py + 8, 16, 16); }
+  if (tile === T.DOOR_Y) { ctx.fillStyle = '#eab308'; ctx.fillRect(px + 4, py + 3, TILE - 8, TILE - 6); drawIcon(px, py, '🚪', 14); }
+  if (tile === T.DOOR_B) { ctx.fillStyle = '#3b82f6'; ctx.fillRect(px + 4, py + 3, TILE - 8, TILE - 6); drawIcon(px, py, '🚪', 14); }
+  if (tile === T.DOOR_R) { ctx.fillStyle = '#ef4444'; ctx.fillRect(px + 4, py + 3, TILE - 8, TILE - 6); drawIcon(px, py, '🚪', 14); }
+  if (tile === T.KEY_Y) drawIcon(px, py, '🗝️');
+  if (tile === T.KEY_B) drawIcon(px, py, '🔑');
+  if (tile === T.KEY_R) drawIcon(px, py, '🔐');
+  if (tile === T.GEM_R) drawIcon(px, py, '❤️');
+  if (tile === T.GEM_B) drawIcon(px, py, '💎');
+  if (tile === T.POTION) drawIcon(px, py, '🧪');
+  if (tile === T.STAIR_UP) drawIcon(px, py, '⬆️');
+  if (tile === T.STAIR_DOWN) drawIcon(px, py, '⬇️');
+  if (tile === T.SHOP) drawIcon(px, py, '🏪');
+  if (tile === T.NPC) drawIcon(px, py, '🧙');
+  if (tile === T.TRAP) drawIcon(px, py, '🪤');
+  if (tile === T.GOLD) drawIcon(px, py, '💰');
 }
 
 function render() {
@@ -152,19 +233,22 @@ function render() {
   for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) drawTile(x, y, fd.map[y][x]);
 
   fd.monsters.forEach(m => {
-    const color = MONSTERS[m.type].color;
-    ctx.fillStyle = color;
-    ctx.beginPath(); ctx.arc(m.x * TILE + 16, m.y * TILE + 16, 11, 0, Math.PI * 2); ctx.fill();
+    const data = MONSTERS[m.type];
+    ctx.fillStyle = data.color;
+    ctx.beginPath();
+    ctx.arc(m.x * TILE + 16, m.y * TILE + 16, 12, 0, Math.PI * 2);
+    ctx.fill();
+    drawIcon(m.x * TILE, m.y * TILE, data.icon, 16);
   });
 
-  ctx.fillStyle = '#22c55e';
-  ctx.fillRect(game.hero.x * TILE + 7, game.hero.y * TILE + 7, 18, 18);
+  drawIcon(game.hero.x * TILE, game.hero.y * TILE, '🦸', 18);
+  drawIcon(game.hero.x * TILE + 8, game.hero.y * TILE + 8, '⚔️', 10);
 
   const hereMonster = fd.monsters.find(m => Math.abs(m.x - game.hero.x) + Math.abs(m.y - game.hero.y) === 1);
   if (hereMonster) {
     const m = MONSTERS[hereMonster.type];
     const loss = damageForecast(game.hero, m);
-    hint.textContent = `邻近怪物 ${m.name}，预计损失 HP：${Number.isFinite(loss) ? loss : '无法破防'}`;
+    hint.textContent = `邻近怪物 ${m.icon}${m.name}，预计损失 HP：${Number.isFinite(loss) ? loss : '无法破防'}`;
   }
 
   statusPanel.innerHTML = [
@@ -282,9 +366,9 @@ function load(slot) {
 }
 
 function manualHtml() {
-  return Object.entries(MONSTERS).map(([k, m]) => {
+  return Object.values(MONSTERS).map((m) => {
     const loss = damageForecast(game.hero, m);
-    return `<div>${m.name} HP${m.hp}/ATK${m.atk}/DEF${m.def} 预计损耗:${Number.isFinite(loss) ? loss : '无法击败'}</div>`;
+    return `<div>${m.icon} ${m.name} HP${m.hp}/ATK${m.atk}/DEF${m.def} 预计损耗:${Number.isFinite(loss) ? loss : '无法击败'}</div>`;
   }).join('');
 }
 
