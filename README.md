@@ -1,4 +1,4 @@
-# zuoweigame（左为游戏）
+# zuoweigame（佐为の🎮）
 
 一个可部署到 GitHub Pages 的纯前端小游戏仓库。
 
@@ -12,15 +12,15 @@
     │   ├── index.html      # 游戏 1：反应速度挑战
     │   ├── style.css
     │   └── script.js
-    └── game4/
-        ├── index.html      # 游戏 4：佐为自走棋
+    └── game2/
+        ├── index.html      # 游戏 2：佐为自走棋
         ├── style.css
         └── script.js
 ```
 
-## 新增游戏：佐为自走棋
+## 游戏 2：佐为自走棋
 
-`games/game4/` 是一个纯 HTML/CSS/JavaScript 的单机自走棋网页游戏（**手机端优先适配**，桌面端也可游玩），包含以下核心玩法：
+`games/game2/` 是一个纯 HTML/CSS/JavaScript 的单机自走棋网页游戏（**手机端优先适配**，桌面端也可游玩），包含以下核心玩法：
 
 - 8+ 棋子、费用/星级/阵营/职业属性
 - 3 合 1 升星（1星→2星、2星→3星）
@@ -47,7 +47,7 @@
 
 - `index.html`：查看游戏列表
 - `games/game1/index.html`：直接进入反应速度挑战
-- `games/game4/index.html`：直接进入佐为自走棋
+- `games/game2/index.html`：直接进入佐为自走棋
 
 ## 启用 GitHub Pages
 
@@ -64,4 +64,4 @@
 
 - 首页：`/`
 - 游戏 1：`/games/game1/`
-- 游戏 4（佐为自走棋）：`/games/game4/`
+- 游戏 2（佐为自走棋）：`/games/game2/`
