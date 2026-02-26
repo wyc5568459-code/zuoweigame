@@ -124,83 +124,13 @@ function createPath() {
   return path.filter((p, i, arr) => i === 0 || p[0] !== arr[i - 1][0] || p[1] !== arr[i - 1][1]);
 }
 
-const MAIN_PATH = createPath();
-
-function makeFloor(n) {
-  const map = Array.from({ length: SIZE }, () => Array(SIZE).fill(T.WALL));
-  const monsters = [];
-  const forcedDoors = [];
-
-  for (const [x, y] of MAIN_PATH) map[y][x] = T.FLOOR;
-  for (let i = 2; i < MAIN_PATH.length - 2; i += 4) {
-    const [x, y] = MAIN_PATH[i];
-    if (x + 1 < SIZE - 1) map[y][x + 1] = T.FLOOR;
-    if (y + 1 < SIZE - 1) map[y + 1][x] = T.FLOOR;
-  }
-
-  const stairUp = { x: 1, y: 1 };
-  const stairDown = { x: 11, y: 11 };
-  if (n > 1) map[stairUp.y][stairUp.x] = T.STAIR_UP;
-  if (n < 50) map[stairDown.y][stairDown.x] = T.STAIR_DOWN;
-
-  const put = (x, y, tile) => { if (map[y][x] === T.FLOOR) map[y][x] = tile; };
-  const pathAt = (idx) => ({ x: MAIN_PATH[Math.min(idx, MAIN_PATH.length - 3)][0], y: MAIN_PATH[Math.min(idx, MAIN_PATH.length - 3)][1] });
-
-  if (n >= 2) {
-    const keyCell = pathAt(4);
-    const doorCell = pathAt(12);
-    put(keyCell.x, keyCell.y, T.KEY_Y);
-    put(doorCell.x, doorCell.y, T.DOOR_Y);
-    forcedDoors.push({ x: doorCell.x, y: doorCell.y, type: T.DOOR_Y, keyType: '黄钥匙', reason: '主线必经黄门' });
-  }
-  if (n >= 12) {
-    const keyCell = pathAt(16);
-    const doorCell = pathAt(24);
-    put(keyCell.x, keyCell.y, T.KEY_B);
-    put(doorCell.x, doorCell.y, T.DOOR_B);
-    forcedDoors.push({ x: doorCell.x, y: doorCell.y, type: T.DOOR_B, keyType: '蓝钥匙', reason: '主线必经蓝门' });
-  }
-  if (n >= 24) {
-    const keyCell = pathAt(22);
-    const doorCell = pathAt(32);
-    put(keyCell.x, keyCell.y, T.KEY_R);
-    put(doorCell.x, doorCell.y, T.DOOR_R);
-    forcedDoors.push({ x: doorCell.x, y: doorCell.y, type: T.DOOR_R, keyType: '红钥匙', reason: '主线必经红门' });
-  }
-
-  // 支线门（非必经）
-  const sideDoor = { x: 4, y: 2 };
-  const sideReward = { x: 5, y: 2 };
-  map[2][4] = T.DOOR_B;
-  map[2][5] = T.POTION;
-
-  // 普通资源
-  put(6, 1, T.KEY_Y);
-  put(8, 3, T.GEM_R);
-  put(4, 6, T.GEM_B);
-  put(9, 6, T.POTION);
-  put(10, 10, T.GOLD);
-  if (n % 5 === 0) put(3, 10, T.SHOP);
-
-  if (n % 3 === 1) put(8, 9, T.NPC);
-
-  const roster = n < 8 ? ['slime', 'bat'] : n < 16 ? ['bat', 'guard'] : n < 28 ? ['guard', 'knight'] : n < 40 ? ['knight', 'mage'] : ['mage', 'demon'];
-  const spawnCells = [[7,1],[9,2],[6,3],[3,4],[6,6],[10,7],[8,9],[4,11]];
-  spawnCells.forEach(([x,y], i) => {
-    if (map[y][x] === T.FLOOR) monsters.push({ x, y, type: roster[i % roster.length] });
-  });
-
-  if (n === 20) monsters.push({ x: 9, y: 9, type: 'demon', boss: true, label: '吸血鬼' });
-  if (n === 32) monsters.push({ x: 9, y: 9, type: 'mage', boss: true, label: '大法师' });
-  if (n === 41) monsters.push({ x: 9, y: 9, type: 'demon', boss: true, fakeKing: true, label: '假魔王' });
-  if (n === 50) monsters.push({ x: 9, y: 9, type: 'king', boss: true, trueKing: true, label: '真魔王' });
-
-  return { map, monsters, forcedDoors, sideDoor, sideReward };
-}
-
-function ensureFloors() {
+async function ensureFloors() {
   if (game.floors.length) return;
-  for (let i = 1; i <= 50; i++) game.floors.push(makeFloor(i));
+  const res = await fetch('./data/floors.json');
+  if (!res.ok) throw new Error(`地图加载失败: ${res.status}`);
+  const payload = await res.json();
+  if (!Array.isArray(payload.floors) || payload.floors.length < 50) throw new Error('地图数据缺失：需要 50 层。');
+  game.floors = payload.floors.map((f) => ({ map: f.map, monsters: f.monsters || [], forcedDoors: f.forcedDoors || [] }));
 }
 
 function floorData() { return game.floors[game.floor - 1]; }
@@ -486,6 +416,20 @@ function validateFloors() {
   return result;
 }
 
+function autoFixSoftlocks(maxRounds = 30) {
+  const patches = [];
+  for (let i = 0; i < maxRounds; i++) {
+    const result = validateFloors();
+    if (result.ok) return { ok: true, patches, result };
+    const fd = game.floors[result.floor - 1];
+    const forced = (fd.forcedDoors || []).find((d) => fd.map[d.y]?.[d.x] === d.type);
+    if (!forced) return { ok: false, patches, result };
+    fd.map[forced.y][forced.x] = T.FLOOR;
+    patches.push({ floor: result.floor, x: forced.x, y: forced.y, from: forced.type, to: T.FLOOR, reason: result.reason });
+  }
+  return { ok: false, patches, result: { ok: false, reason: `超过 ${maxRounds} 次自动修复仍不可通关` } };
+}
+
 window.validateFloors = validateFloors;
 
 function save(slot) {
@@ -525,8 +469,11 @@ window.__save = save;
 window.__load = load;
 window.__story = () => openPagedDialog('任务', STORY.quest);
 window.__validate = () => {
-  const res = validateFloors();
-  showDialog('可通关校验', `<p>${res.ok ? '✅' : '❌'} ${res.reason}</p>`);
+  const fix = autoFixSoftlocks();
+  const logs = fix.patches.length
+    ? `<p>自动修复 ${fix.patches.length} 处潜在死局：</p><ul>${fix.patches.map((p) => `<li>${p.floor}F (${p.x},${p.y}) 门改为可选路径</li>`).join('')}</ul>`
+    : '<p>未检测到钥匙死局。</p>';
+  showDialog('可通关校验', `<p>${fix.ok ? '✅' : '❌'} ${fix.result.reason}</p>${logs}`);
 };
 
 function showDialog(title, bodyHtml) {
@@ -564,11 +511,22 @@ function bind() {
   });
 }
 
-ensureFloors();
-bind();
-resizeCanvas();
-render();
-if (!game.flags.introShown) {
-  game.flags.introShown = true;
-  openPagedDialog('序章', STORY.intro);
+async function start() {
+  try {
+    await ensureFloors();
+    const fix = autoFixSoftlocks();
+    if (fix.patches.length) console.warn('自动修复钥匙死局', fix.patches);
+    bind();
+    resizeCanvas();
+    render();
+    if (!game.flags.introShown) {
+      game.flags.introShown = true;
+      openPagedDialog('序章', STORY.intro);
+    }
+  } catch (error) {
+    hint.textContent = `初始化失败：${error.message}`;
+    console.error(error);
+  }
 }
+
+start();
