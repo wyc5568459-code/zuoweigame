@@ -258,6 +258,9 @@ async function startBattle() {
   const allies = state.board.filter(Boolean).map(u => structuredClone(u));
   if (!allies.length) return log('请至少上阵1个棋子再开始战斗');
 
+  state.battleLog = [];
+  el.log.innerHTML = '';
+
   state.phase = 'battle';
   log('⚔️ 战斗开始');
   render();
@@ -372,8 +375,7 @@ function renderUnit(unit, opts = {}) {
   div.className = `unit ${selected ? 'selected' : ''} ${enemy ? 'enemy' : ''}`;
   div.innerHTML = `
     <div class="head"><span class="icon">${unit.icon || '♟️'}</span><div class="name">${unit.name} ${'★'.repeat(unit.star)}</div></div>
-    <div class="meta">${unit.faction}/${unit.role}</div>
-    <div class="meta">攻:${unit.atk} 速:${unit.atkInterval}</div>
+    <div class="meta">${unit.faction}/${unit.role}｜攻:${unit.atk}</div>
     <div class="hp-bar"><div class="hp-fill" style="width:${Math.max(0, unit.hp / unit.maxHp * 100)}%"></div></div>
   `;
   div.addEventListener('click', (e) => {
@@ -422,7 +424,7 @@ function renderSynergies() {
 
 function log(text) {
   state.battleLog.unshift(`[${new Date().toLocaleTimeString()}] ${text}`);
-  state.battleLog = state.battleLog.slice(0, 24);
+  state.battleLog = state.battleLog.slice(0, 12);
   el.log.innerHTML = state.battleLog.map(x => `<p>${x}</p>`).join('');
 }
 

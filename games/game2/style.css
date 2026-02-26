@@ -42,6 +42,32 @@ body {
 h1, h2 { margin: 0; }
 h2 { font-size: 0.95rem; }
 .top-panel h1 { margin-bottom: 6px; font-size: 1.2rem; }
+.top-panel { padding: 7px; }
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.quick-nav {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.quick-nav a {
+  background: rgba(92, 200, 255, 0.18);
+  border: 1px solid rgba(92, 200, 255, 0.4);
+  color: #dff3ff;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
 
 .title-row {
   display: flex;
@@ -72,13 +98,13 @@ h2 { font-size: 0.95rem; }
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 5px;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
 }
 
 .stats div {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  padding: 5px;
+  padding: 4px;
   text-align: center;
 }
 
@@ -88,17 +114,17 @@ h2 { font-size: 0.95rem; }
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 5px;
-  margin-top: 6px;
+  margin-top: 5px;
 }
 
 button {
-  min-height: 36px;
+  min-height: 32px;
   background: #223457;
   color: var(--text);
   border: 1px solid #3f5686;
   border-radius: 9px;
   padding: 4px;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   cursor: pointer;
   transition: transform .15s, background .15s;
   touch-action: manipulation;
@@ -109,16 +135,16 @@ button.primary { background: #226ea7; border-color: #48b2ff; }
 button.danger { background: #8f2f4b; border-color: #cc5b78; }
 
 .phase {
-  margin-top: 6px;
+  margin-top: 5px;
   color: var(--accent);
   font-weight: 700;
   font-size: 0.9rem;
 }
 
 .mobile-note {
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 .layout {
@@ -182,7 +208,7 @@ button.danger { background: #8f2f4b; border-color: #cc5b78; }
   border-radius: 999px;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.25);
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .hp-fill { height: 100%; background: linear-gradient(90deg, #5be37d, #9effa7); }
@@ -203,23 +229,22 @@ button.danger { background: #8f2f4b; border-color: #cc5b78; }
 
 .unit-detail {
   margin-top: 6px;
-  min-height: 74px;
+  min-height: 58px;
   background: rgba(255, 255, 255, 0.04);
   border-radius: 10px;
   padding: 6px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
 }
 
 .log-panel {
   margin-top: 6px;
-  flex: 1;
-  min-height: 62px;
+  height: 86px;
   overflow: auto;
   background: rgba(255, 255, 255, 0.04);
   border-radius: 10px;
   padding: 6px;
-  font-size: 0.74rem;
+  font-size: 0.68rem;
 }
 .log-panel p { margin: 0 0 4px; }
 
@@ -244,7 +269,7 @@ button.danger { background: #8f2f4b; border-color: #cc5b78; }
   border: 1px solid rgba(145, 164, 207, 0.35);
   border-radius: 10px;
   padding: 5px;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   line-height: 1.25;
   cursor: pointer;
   overflow: hidden;
