@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>佐为のタワー</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app" aria-label="佐为のタワー">
+    <header class="topbar">
+      <h1>佐为のタワー</h1>
+      <div id="hint" class="hint">目标：登上 50F，救出公主并击败魔王。</div>
+    </header>
+
+    <section class="playfield">
+      <canvas id="gameCanvas" width="416" height="416" aria-label="游戏地图"></canvas>
+      <aside class="status" id="statusPanel"></aside>
+    </section>
+
+    <section class="controls" aria-label="操作区">
+      <div class="dpad">
+        <button data-dir="up">▲</button>
+        <button data-dir="left">◀</button>
+        <button data-dir="down">▼</button>
+        <button data-dir="right">▶</button>
+      </div>
+      <div class="actions">
+        <button id="btnConfirm">确认</button>
+        <button id="btnCancel">取消</button>
+        <button id="btnMenu">菜单</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="overlay" class="overlay hidden" role="dialog" aria-modal="true">
+    <div class="panel">
+      <h2 id="panelTitle">菜单</h2>
+      <div id="panelBody"></div>
+      <div class="panel-actions">
+        <button id="panelClose">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
