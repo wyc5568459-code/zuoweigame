@@ -20,14 +20,14 @@ body {
 }
 
 .app {
-  height: 100vh;
+  min-height: 100vh;
   max-width: 880px;
   margin: 0 auto;
   padding: 8px;
   display: grid;
   grid-template-rows: auto 1fr auto auto;
   gap: 8px;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .card {
@@ -43,6 +43,31 @@ h1, h2 { margin: 0; }
 h2 { font-size: 0.95rem; }
 .top-panel h1 { margin-bottom: 6px; font-size: 1.2rem; }
 .top-panel { padding: 7px; }
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.quick-nav {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.quick-nav a {
+  background: rgba(92, 200, 255, 0.18);
+  border: 1px solid rgba(92, 200, 255, 0.4);
+  color: #dff3ff;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
 
 .title-row {
   display: flex;
@@ -141,7 +166,7 @@ button.danger { background: #8f2f4b; border-color: #cc5b78; }
 
 .cell {
   aspect-ratio: 1 / 1;
-  min-height: 58px;
+  min-height: 72px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px dashed rgba(145, 164, 207, 0.45);
   border-radius: 10px;
@@ -162,20 +187,20 @@ button.danger { background: #8f2f4b; border-color: #cc5b78; }
   padding: 4px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: linear-gradient(145deg, rgba(95, 133, 214, 0.3), rgba(73, 103, 171, 0.18));
-  font-size: 10px;
+  font-size: 11px;
   cursor: pointer;
   display: grid;
-  grid-template-rows: auto auto 1fr;
-  gap: 1px;
+  grid-template-rows: auto auto auto 1fr;
+  gap: 2px;
   overflow: hidden;
 }
 
 .unit.enemy { background: linear-gradient(145deg, rgba(220, 94, 130, 0.3), rgba(150, 60, 89, 0.2)); }
 .unit.selected { outline: 2px solid var(--accent); }
 .unit .head { display: flex; align-items: center; gap: 4px; min-width: 0; }
-.unit .icon { font-size: 12px; line-height: 1; }
-.unit .name { font-weight: 700; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.unit .meta { color: #b4c2e8; font-size: 8px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.unit .icon { font-size: 14px; line-height: 1; }
+.unit .name { font-weight: 700; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.unit .meta { color: #b4c2e8; font-size: 9px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .hp-bar {
   width: 100%;
@@ -239,7 +264,7 @@ button.danger { background: #8f2f4b; border-color: #cc5b78; }
 }
 
 .shop-card {
-  min-height: 70px;
+  min-height: 82px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(145, 164, 207, 0.35);
   border-radius: 10px;
@@ -259,6 +284,6 @@ button.danger { background: #8f2f4b; border-color: #cc5b78; }
   .layout { grid-template-columns: 1fr 1fr; }
   .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .cell { min-height: 52px; }
+  .cell { min-height: 64px; }
   .quick-nav a { font-size: 0.68rem; }
 }
