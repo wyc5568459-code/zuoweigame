@@ -17,38 +17,56 @@
         <div>回合 <strong id="round">1</strong></div>
         <div>HP <strong id="hp">100</strong></div>
         <div>金币 <strong id="gold">10</strong></div>
+        <div>利息 <strong id="interest">0</strong></div>
+        <div>连胜 <strong id="winStreak">0</strong></div>
+        <div>连败 <strong id="loseStreak">0</strong></div>
         <div>等级 <strong id="level">1</strong></div>
         <div>经验 <strong id="exp">0/4</strong></div>
         <div>人口 <strong id="pop">0/1</strong></div>
       </div>
       <div class="actions">
-        <button id="btnBattle" class="primary">开始回合战斗</button>
+        <button id="btnBattle" class="primary">开始战斗</button>
         <button id="btnExp">购买经验(4)</button>
         <button id="btnRefresh">刷新商店(2)</button>
       </div>
-      <div id="phase" class="phase">准备阶段：先购买并上阵棋子</div>
+      <div id="phase" class="phase"></div>
     </header>
 
-    <main class="board-area panel">
-      <div id="board" class="board-grid"></div>
+    <main class="middle-layout">
+      <section class="panel board-panel">
+        <div class="section-title">我方战场</div>
+        <div id="board" class="board-grid"></div>
+      </section>
+      <section class="panel board-panel enemy-panel">
+        <div class="section-title">Next Opponent / 下回合对手 <span id="enemyLabel"></span></div>
+        <div class="enemy-strategy" id="enemyStrategy"></div>
+        <div id="enemyBoard" class="board-grid enemy-board"></div>
+      </section>
+      <aside class="panel synergy-panel">
+        <div class="section-title">羁绊面板</div>
+        <div id="synergy" class="synergy-list"></div>
+      </aside>
     </main>
 
-    <section class="bottom panel">
-      <div class="tab-head">
-        <button id="tabBench" class="tab active">备战区</button>
-        <button id="tabShop" class="tab">商店</button>
-      </div>
-      <div id="benchPanel" class="tab-panel">
-        <div id="bench" class="bench-grid"></div>
-      </div>
-      <div id="shopPanel" class="tab-panel hidden">
+    <section class="panel dock">
+      <div class="shop-row">
+        <div class="dock-title">商店</div>
         <div id="shop" class="shop-grid"></div>
       </div>
-      <div class="foot-row">
-        <div id="synergy" class="synergy"></div>
-        <div id="log" class="log"></div>
+      <div class="bench-row">
+        <div class="dock-title">备战区（8格）</div>
+        <div id="bench" class="bench-grid"></div>
       </div>
+      <div id="log" class="log"></div>
     </section>
+  </div>
+
+  <div id="traitModal" class="modal hidden">
+    <div class="modal-card panel">
+      <div id="traitTitle" class="section-title"></div>
+      <div id="traitDesc" class="trait-desc"></div>
+      <button id="closeTrait">关闭</button>
+    </div>
   </div>
 
   <script src="script.js"></script>
