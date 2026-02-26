@@ -134,6 +134,9 @@ function simulateBattle() {
     return;
   }
 
+  state.battleLog = [];
+  el.log.innerHTML = '';
+
   state.phase = 'battle';
   const enemyCount = Math.min(1 + Math.floor(state.round / 2), 8);
   const enemies = Array.from({ length: enemyCount }, (_, i) => {
