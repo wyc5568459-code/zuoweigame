@@ -6,15 +6,15 @@
  */
 
 const UNIT_POOL = [
-  { id: 'wei-warrior', name: '围棋武士', cost: 1, hp: 110, atk: 18, atkInterval: 1.2, faction: '棋魂', role: '战士' },
-  { id: 'ink-ranger', name: '墨影猎手', cost: 1, hp: 90, atk: 22, atkInterval: 1.0, faction: '山林', role: '猎手' },
-  { id: 'seal-mage', name: '封印术师', cost: 2, hp: 80, atk: 20, atkInterval: 0.95, faction: '学院', role: '法师' },
-  { id: 'forest-guard', name: '森语守卫', cost: 1, hp: 120, atk: 16, atkInterval: 1.3, faction: '山林', role: '战士' },
-  { id: 'moon-hunter', name: '望月弓手', cost: 2, hp: 85, atk: 25, atkInterval: 0.9, faction: '月隐', role: '猎手' },
-  { id: 'wind-mage', name: '风行法使', cost: 2, hp: 78, atk: 24, atkInterval: 0.85, faction: '月隐', role: '法师' },
-  { id: 'stone-warrior', name: '玄石力士', cost: 3, hp: 150, atk: 27, atkInterval: 1.4, faction: '棋魂', role: '战士' },
-  { id: 'star-mage', name: '星辉术者', cost: 3, hp: 88, atk: 32, atkInterval: 1.0, faction: '学院', role: '法师' },
-  { id: 'bamboo-hunter', name: '竹影追猎', cost: 2, hp: 92, atk: 23, atkInterval: 0.95, faction: '山林', role: '猎手' }
+  { id: 'wei-warrior', icon: '⚔️', name: '围棋武士', cost: 1, hp: 110, atk: 18, atkInterval: 1.2, faction: '棋魂', role: '战士' },
+  { id: 'ink-ranger', icon: '🏹', name: '墨影猎手', cost: 1, hp: 90, atk: 22, atkInterval: 1.0, faction: '山林', role: '猎手' },
+  { id: 'seal-mage', icon: '🔮', name: '封印术师', cost: 2, hp: 80, atk: 20, atkInterval: 0.95, faction: '学院', role: '法师' },
+  { id: 'forest-guard', icon: '🛡️', name: '森语守卫', cost: 1, hp: 120, atk: 16, atkInterval: 1.3, faction: '山林', role: '战士' },
+  { id: 'moon-hunter', icon: '🌙', name: '望月弓手', cost: 2, hp: 85, atk: 25, atkInterval: 0.9, faction: '月隐', role: '猎手' },
+  { id: 'wind-mage', icon: '💨', name: '风行法使', cost: 2, hp: 78, atk: 24, atkInterval: 0.85, faction: '月隐', role: '法师' },
+  { id: 'stone-warrior', icon: '🗿', name: '玄石力士', cost: 3, hp: 150, atk: 27, atkInterval: 1.4, faction: '棋魂', role: '战士' },
+  { id: 'star-mage', icon: '✨', name: '星辉术者', cost: 3, hp: 88, atk: 32, atkInterval: 1.0, faction: '学院', role: '法师' },
+  { id: 'bamboo-hunter', icon: '🎋', name: '竹影追猎', cost: 2, hp: 92, atk: 23, atkInterval: 0.95, faction: '山林', role: '猎手' }
 ];
 
 const SYNERGY_CONFIG = [
@@ -62,7 +62,7 @@ function createUnit(baseId, star = 1) {
   const mult = star === 1 ? 1 : star === 2 ? 1.8 : 3.1;
   return {
     uid: uid(), baseId,
-    name: base.name, cost: base.cost, star,
+    name: base.name, icon: base.icon || '♟️', cost: base.cost, star,
     hp: Math.round(base.hp * mult), maxHp: Math.round(base.hp * mult),
     atk: Math.round(base.atk * mult),
     atkInterval: Math.max(0.45, +(base.atkInterval * (star === 1 ? 1 : star === 2 ? 0.88 : 0.74)).toFixed(2)),
@@ -361,16 +361,17 @@ function renderCells(container, arr, area) {
     if (selected) cell.classList.add('highlight');
 
     cell.addEventListener('click', () => onCellClick(area, idx));
-    if (unit) cell.appendChild(renderUnit(unit, selected));
+    if (unit) cell.appendChild(renderUnit(unit, { selected, enemy: false, onTap: () => onCellClick(area, idx) }));
     container.appendChild(cell);
   });
 }
 
-function renderUnit(unit, selected = false, enemy = false) {
+function renderUnit(unit, opts = {}) {
+  const { selected = false, enemy = false, onTap = null } = opts;
   const div = document.createElement('div');
   div.className = `unit ${selected ? 'selected' : ''} ${enemy ? 'enemy' : ''}`;
   div.innerHTML = `
-    <div class="name">${unit.name} ${'★'.repeat(unit.star)}</div>
+    <div class="head"><span class="icon">${unit.icon || '♟️'}</span><div class="name">${unit.name} ${'★'.repeat(unit.star)}</div></div>
     <div class="meta">${unit.faction}/${unit.role}</div>
     <div class="meta">攻:${unit.atk} 速:${unit.atkInterval}</div>
     <div class="hp-bar"><div class="hp-fill" style="width:${Math.max(0, unit.hp / unit.maxHp * 100)}%"></div></div>
@@ -378,13 +379,14 @@ function renderUnit(unit, selected = false, enemy = false) {
   div.addEventListener('click', (e) => {
     e.stopPropagation();
     showDetail(unit);
+    if (onTap) onTap();
   });
   return div;
 }
 
 function showDetail(unit) {
   el.detail.innerHTML = `
-    <strong>${unit.name} ${'★'.repeat(unit.star)}</strong><br>
+    <strong>${unit.icon || '♟️'} ${unit.name} ${'★'.repeat(unit.star)}</strong><br>
     费用：${unit.cost} 金<br>
     阵营：${unit.faction}｜职业：${unit.role}<br>
     生命：${unit.hp}/${unit.maxHp}<br>
@@ -400,7 +402,7 @@ function renderShop() {
     if (!u) {
       card.innerHTML = '<small>已售空</small>';
     } else {
-      card.innerHTML = `<strong>${u.name}</strong><br><small>${u.faction}/${u.role}</small><br><span class="cost">${u.cost} 金币</span>`;
+      card.innerHTML = `<div class="shop-title"><span class="icon">${u.icon || '♟️'}</span><strong>${u.name}</strong></div><small>${u.faction}/${u.role}</small><br><span class="cost">${u.cost} 金币</span>`;
       card.addEventListener('click', () => buyFromShop(idx));
     }
     el.shop.appendChild(card);
